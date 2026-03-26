@@ -1,0 +1,54 @@
+{
+  "onboarding": {
+    "location_title": "Find the best barbers near you",
+    "location_subtitle": "We use your location to show the best barbers in your area.",
+    "allow_location": "Allow Location",
+    "notifications_title": "Never miss your appointment",
+    "notifications_subtitle": "Get reminders and updates about your bookings.",
+    "enable_notifications": "Enable Notifications",
+    "skip": "Skip for now"
+  },
+  "tabs": {
+    "explore": "Book&Go",
+    "book_go": "My Barbers",
+    "appointments": "Appointments",
+    "profile": "Profile"
+  },
+  "home": {
+    "search_placeholder": "Search barbers or salons...",
+    "recommended": "Recommended by Cut & Go",
+    "reviews": "{{count}} reviews"
+  },
+  "barber": {
+    "services": "Services",
+    "reviews": "Reviews",
+    "portfolio": "Portfolio",
+    "details": "Details",
+    "book": "Book",
+    "min": "min"
+  },
+  "booking": {
+    "title": "Select Date & Time",
+    "continue": "Continue",
+    "phone_title": "Enter your phone number",
+    "phone_placeholder": "+20 1...",
+    "otp_title": "Enter verification code",
+    "verify": "Verify",
+    "success_title": "Booking Confirmed",
+    "success_subtitle": "Your appointment has been scheduled.",
+    "go_to_appointments": "Go to Appointments",
+    "not_available": "Not available"
+  },
+  "appointments": {
+    "upcoming": "Upcoming Appointments",
+    "history": "History",
+    "no_upcoming": "No upcoming appointments."
+  },
+  "profile": {
+    "language": "Language",
+    "dark_mode": "Dark Mode",
+    "logout": "Logout",
+    "english": "English",
+    "arabic": "Arabic"
+  }
+}

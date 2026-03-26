@@ -1,24 +1,40 @@
-import i18next from "@/common/i18n/i18n.config";
-import { useLanguageStore } from "@/common/i18n/language.store";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from 'expo-router';
-import { useEffect } from "react";
+import { useAppStore } from '../store/useAppStore';
+import { useEffect, useState } from 'react';
+import { I18nManager, View, ActivityIndicator } from 'react-native';
+import i18next from '../i18n';
 
-const queryClient = new QueryClient();
-
-export default function Layout() {
-  const language = useLanguageStore((s) => s.language);
+export default function RootLayout() {
+  const language = useAppStore((state) => state.language);
+  const [isI18nReady, setIsI18nReady] = useState(i18next.isInitialized);
 
   useEffect(() => {
-    i18next.changeLanguage(language);
-  }, [language]);
+    if (!i18next.isInitialized) {
+      i18next.init().then(() => setIsI18nReady(true));
+    } else {
+      setIsI18nReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isI18nReady && i18next.language !== language) {
+      i18next.changeLanguage(language);
+    }
+  }, [language, isI18nReady]);
+
+  if (!isI18nReady) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-      </Stack>
-    </QueryClientProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="(onboarding)" />
+      <Stack.Screen name="(tabs)" />
+    </Stack>
   );
 }
