@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, ActivityIndicator, TouchableOpacityProps, StyleProp, ViewStyle } from 'react-native';
-import { useThemeColors, Text } from './Text';
+import { useThemeColors } from '../../hooks/useThemeColors';
+import { Text } from './Text';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -73,7 +74,7 @@ export const Button: React.FC<ButtonProps> = ({
           borderWidth: variant === 'outline' || variant === 'secondary' ? 1 : 0,
           width: fullWidth ? '100%' : 'auto',
         },
-        style
+        style,
       ]}
       {...props}
     >
@@ -94,5 +95,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
 });

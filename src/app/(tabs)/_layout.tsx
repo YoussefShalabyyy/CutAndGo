@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useThemeColors } from '../../components/ui/Text';
+import { useThemeColors } from '@/common/hooks/useThemeColors';
 
 export default function TabsLayout() {
   const { t } = useTranslation();
@@ -23,7 +23,7 @@ export default function TabsLayout() {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '500',
-        }
+        },
       }}
     >
       <Tabs.Screen

@@ -1,11 +1,11 @@
 import { Stack } from 'expo-router';
-import { useAppStore } from '../store/useAppStore';
+import { useSettingsStore } from '@/providers/stores/useSettingsStore';
 import { useEffect, useState } from 'react';
-import { I18nManager, View, ActivityIndicator } from 'react-native';
-import i18next from '../i18n';
+import { View, ActivityIndicator } from 'react-native';
+import i18next from '@/lib/i18n';
 
 export default function RootLayout() {
-  const language = useAppStore((state) => state.language);
+  const language = useSettingsStore((state) => state.language);
   const [isI18nReady, setIsI18nReady] = useState(i18next.isInitialized);
 
   useEffect(() => {

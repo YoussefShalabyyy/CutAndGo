@@ -1,10 +1,10 @@
 import { Redirect } from 'expo-router';
-import { useAppStore } from '../store/useAppStore';
+import { useAuthStore } from '@/providers/stores/useAuthStore';
 import { useEffect, useState } from 'react';
 
 export default function Index() {
   const [isMounted, setIsMounted] = useState(false);
-  const hasCompletedOnboarding = useAppStore((state) => state.hasCompletedOnboarding);
+  const hasCompletedOnboarding = useAuthStore((state) => state.hasCompletedOnboarding);
 
   useEffect(() => {
     setIsMounted(true);
