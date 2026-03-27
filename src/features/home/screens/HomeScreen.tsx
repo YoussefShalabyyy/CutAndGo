@@ -8,14 +8,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Image, StyleSheet, View } from 'react-native';
+import { FlatList, Image, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MOCK_BARBERS } from '../data/mockBarbers';
+import { useBarbers } from '../hooks/useBarbers';
 
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const colors = useThemeColors();
+
+  const { data: barbers, isLoading, error } = useBarbers();
 
   const renderBarberCard = ({ item }: { item: Barber }) => {
     return (
@@ -32,11 +34,13 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View style={styles.galleryContainer}>
-          {item.gallery.map((img, idx) => (
-            <Image key={idx} source={{ uri: img }} style={styles.galleryImage} />
-          ))}
-        </View>
+        {item.gallery && item.gallery.length > 0 && (
+          <View style={styles.galleryContainer}>
+            {item.gallery.slice(0, 3).map((img, idx) => (
+              <Image key={idx} source={{ uri: img }} style={styles.galleryImage} />
+            ))}
+          </View>
+        )}
 
         <View style={styles.infoContainer}>
           <Badge label={t('home.recommended')} variant="primary" style={styles.badge} />
@@ -66,13 +70,23 @@ export default function HomeScreen() {
       </View>
       <View>
 
-        <FlatList
-          data={MOCK_BARBERS}
-          keyExtractor={(item) => item.id}
-          renderItem={renderBarberCard}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
+        {isLoading ? (
+          <View style={styles.centerBox}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : error ? (
+          <View style={styles.centerBox}>
+            <Text color={colors.error}>Failed to load barbers</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={barbers}
+            keyExtractor={(item) => item.id}
+            renderItem={renderBarberCard}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
 
     </SafeAreaView>
@@ -105,4 +119,5 @@ const styles = StyleSheet.create({
   salonName: { marginBottom: 12 },
   locationContainer: { flexDirection: 'row', alignItems: 'center' },
   address: { marginLeft: 4 },
+  centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });

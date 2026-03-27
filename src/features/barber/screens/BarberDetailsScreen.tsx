@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,8 +8,7 @@ import { Button } from '@/common/components/ui/Button';
 import { useThemeColors } from '@/common/hooks/useThemeColors';
 import { Service } from '@/common/types';
 import { useFavoritesStore } from '../store/useFavoritesStore';
-import { MOCK_BARBERS } from '@/features/home/data/mockBarbers';
-import { MOCK_SERVICES } from '../data/mockServices';
+import { useBarber, useServices } from '../hooks/useBarberHooks';
 
 const { width } = Dimensions.get('window');
 
@@ -21,20 +20,40 @@ export default function BarberDetailsScreen() {
   const colors = useThemeColors();
   const router = useRouter();
 
-  const barber = MOCK_BARBERS.find((b) => b.id === id) || MOCK_BARBERS[0];
+  const { data: barber, isLoading: barberLoading } = useBarber(id as string);
+  const { data: services, isLoading: servicesLoading } = useServices(id as string);
+
   const { savedBarbers, toggleSavedBarber } = useFavoritesStore();
-  const isSaved = savedBarbers.some((b) => b.id === barber.id);
+  const isSaved = barber ? savedBarbers.some((b) => b.id === barber.id) : false;
 
   const [activeTab, setActiveTab] = useState<TabMenu>('Services');
 
   const tabs: TabMenu[] = ['Services', 'Reviews', 'Portfolio', 'Details'];
 
   const handleBook = (service: Service) => {
+    if (!barber) return;
     router.push({
       pathname: '/booking/[id]',
-      params: { id: barber.id, serviceName: service.name },
+      params: { id: barber.id, serviceName: service.name, serviceId: service.id },
     });
   };
+
+  if (barberLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (!barber) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text>Barber not found.</Text>
+        <Button title="Go Back" onPress={() => router.back()} style={{ marginTop: 16 }} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -43,9 +62,11 @@ export default function BarberDetailsScreen() {
         {/* HEADER IMAGES */}
         <View style={styles.headerImages}>
           <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
-            {barber.gallery.map((img, i) => (
+            {barber.gallery && barber.gallery.length > 0 ? barber.gallery.map((img, i) => (
               <Image key={i} source={{ uri: img }} style={styles.headerImage} />
-            ))}
+            )) : (
+              <Image source={{ uri: barber.mainImage }} style={styles.headerImage} />
+            )}
           </ScrollView>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={24} color="#000" />
@@ -103,20 +124,26 @@ export default function BarberDetailsScreen() {
         <View style={styles.tabContentContainer}>
           {activeTab === 'Services' && (
             <View>
-              {MOCK_SERVICES.map((srv) => (
-                <View key={srv.id} style={[styles.serviceRow, { borderBottomColor: colors.border }]}>
-                  <View style={styles.serviceInfo}>
-                    <Text variant="h3" weight="bold">{srv.name}</Text>
-                    <Text variant="caption" color={colors.textSecondary}>{srv.duration}</Text>
-                    <Text weight="medium" style={styles.price}>${srv.price}</Text>
+              {servicesLoading ? (
+                <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 24 }} />
+              ) : services && services.length > 0 ? (
+                services.map((srv) => (
+                  <View key={srv.id} style={[styles.serviceRow, { borderBottomColor: colors.border }]}>
+                    <View style={styles.serviceInfo}>
+                      <Text variant="h3" weight="bold">{srv.name}</Text>
+                      <Text variant="caption" color={colors.textSecondary}>{srv.duration}</Text>
+                      <Text weight="medium" style={styles.price}>${srv.price}</Text>
+                    </View>
+                    <Button
+                      title={t('barber.book')}
+                      size="small"
+                      onPress={() => handleBook(srv)}
+                    />
                   </View>
-                  <Button
-                    title={t('barber.book')}
-                    size="small"
-                    onPress={() => handleBook(srv)}
-                  />
-                </View>
-              ))}
+                ))
+              ) : (
+                <Text color={colors.textSecondary} style={{ marginTop: 24 }}>No services available.</Text>
+              )}
             </View>
           )}
 

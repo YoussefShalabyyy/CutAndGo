@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { useSettingsStore } from '@/providers/stores/useSettingsStore';
+import { QueryProvider } from '@/providers/QueryProvider';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import i18next from '@/lib/i18n';
@@ -31,10 +32,15 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(onboarding)" />
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <QueryProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(onboarding)" />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="barber/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="booking/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: false }} />
+      </Stack>
+    </QueryProvider>
   );
 }

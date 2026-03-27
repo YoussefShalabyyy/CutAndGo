@@ -1,62 +1,95 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Keyboard, Pressable, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Keyboard, Pressable, ScrollView, StyleSheet, TextInput, TouchableOpacity, View, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/common/components/ui/Button';
 import { Input } from '@/common/components/ui/Input';
 import { Text } from '@/common/components/ui/Text';
 import { useThemeColors } from '@/common/hooks/useThemeColors';
-import { useAppointmentsStore } from '@/features/appointments/store/useAppointmentsStore';
-import { MOCK_BARBERS } from '@/features/home/data/mockBarbers';
+import { authService } from '@/features/auth/services/authService';
+import { useAuthStore } from '@/providers/stores/useAuthStore';
+import { useBarber } from '@/features/barber/hooks/useBarberHooks';
+import { useAvailableSlots, useCreateBooking } from '../hooks/useBookingHooks';
 
 type BookingStep = 'Date' | 'Phone' | 'OTP' | 'Success';
 
-const TIME_SLOTS = [
-  '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
-  '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM',
-  '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM',
-];
-
 export default function BookingScreen() {
-  const { id, serviceName } = useLocalSearchParams();
+  const { id, serviceName, serviceId } = useLocalSearchParams();
   const { t } = useTranslation();
   const colors = useThemeColors();
   const router = useRouter();
-  const addAppointment = useAppointmentsStore((state) => state.addAppointment);
 
-  const barber = MOCK_BARBERS.find((b) => b.id === id) || MOCK_BARBERS[0];
+  const { session, setSession } = useAuthStore();
+  const { data: barber, isLoading: barberLoading } = useBarber(id as string);
+  const { mutateAsync: createBooking } = useCreateBooking();
 
   const [step, setStep] = useState<BookingStep>('Date');
   const [selectedDate, setSelectedDate] = useState('2023-11-20');
-  const [selectedTime, setSelectedTime] = useState('12:30 PM');
+  const [selectedTime, setSelectedTime] = useState('');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const [waitingForAuth, setWaitingForAuth] = useState(false);
 
-  const handleNextDate = () => setStep('Phone');
+  // Fetch true slots from DB
+  const { data: availableSlots, isLoading: slotsLoading } = useAvailableSlots(id as string, selectedDate);
 
-  const handleNextPhone = () => {
-    if (phone.length > 5) setStep('OTP');
+  // When session updates after modal returns
+  useEffect(() => {
+    if (session && waitingForAuth) {
+      setWaitingForAuth(false);
+      setStep('Phone');
+    }
+  }, [session, waitingForAuth]);
+
+  const handleNextDate = () => {
+    if (!selectedTime) {
+      Alert.alert('Selection required', 'Please select a time slot first.');
+      return;
+    }
+    
+    if (session) {
+      setStep('Phone');
+    } else {
+      setWaitingForAuth(true);
+      router.push('/modal');
+    }
   };
 
-  const handleVerifyOtp = () => {
-    if (otp.length === 4) {
+  const handleNextPhone = async () => {
+    if (phone.length > 5) {
+      setStep('OTP');
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length > 3) {
+      performBooking(session?.user.id);
+    }
+  };
+
+  const performBooking = async (userIdOverride?: string) => {
+    try {
       setLoading(true);
-      setTimeout(() => {
-        addAppointment({
-          id: Math.random().toString(),
-          barberName: barber.name,
-          service: (serviceName as string) || 'Haircut',
-          date: 'Nov 20, 2023',
-          time: selectedTime,
-          status: 'Confirmed',
-          image: barber.mainImage,
-        });
-        setLoading(false);
-        setStep('Success');
-      }, 1000);
+      const userId = userIdOverride || session?.user.id;
+      if (!userId || !id || !serviceId) throw new Error('Missing required booking data');
+
+      await createBooking({
+        user_id: userId,
+        barber_id: id as string,
+        service_id: serviceId as string,
+        date: selectedDate,
+        time: selectedTime,
+      });
+
+      setStep('Success');
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to create booking');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,8 +114,17 @@ export default function BookingScreen() {
     </View>
   );
 
+  if (barberLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      
       {step === 'Date' && (
         <View style={styles.stepContainer}>
           {renderHeader(t('booking.title'))}
@@ -117,29 +159,36 @@ export default function BookingScreen() {
             </View>
 
             <Text variant="h3" weight="bold" style={styles.sectionTitle}>Time</Text>
-            <View style={styles.timeGrid}>
-              {TIME_SLOTS.map((tOption) => {
-                const isSelected = tOption === selectedTime;
-                return (
-                  <TouchableOpacity
-                    key={tOption}
-                    style={[
-                      styles.timeSlot,
-                      { borderColor: colors.border },
-                      isSelected && { backgroundColor: colors.primary, borderColor: colors.primary },
-                    ]}
-                    onPress={() => setSelectedTime(tOption)}
-                  >
-                    <Text
-                      color={isSelected ? colors.primaryText : colors.text}
-                      weight={isSelected ? 'bold' : 'medium'}
+            
+            {slotsLoading ? (
+               <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 20 }} />
+            ) : availableSlots && availableSlots.length > 0 ? (
+              <View style={styles.timeGrid}>
+                {availableSlots.map((tOption) => {
+                  const isSelected = tOption === selectedTime;
+                  return (
+                    <TouchableOpacity
+                      key={tOption}
+                      style={[
+                        styles.timeSlot,
+                        { borderColor: colors.border },
+                        isSelected && { backgroundColor: colors.primary, borderColor: colors.primary },
+                      ]}
+                      onPress={() => setSelectedTime(tOption)}
                     >
-                      {tOption}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                      <Text
+                        color={isSelected ? colors.primaryText : colors.text}
+                        weight={isSelected ? 'bold' : 'medium'}
+                      >
+                        {tOption}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ) : (
+               <Text style={{ textAlign: 'center', marginTop: 20 }}>No available slots for this date.</Text>
+            )}
           </ScrollView>
 
           <View style={styles.footer}>
@@ -164,7 +213,13 @@ export default function BookingScreen() {
             />
           </View>
           <View style={styles.footerSpace}>
-            <Button title={t('booking.continue')} fullWidth onPress={handleNextPhone} disabled={phone.length < 6} />
+            <Button
+              title={t('booking.continue')}
+              fullWidth
+              onPress={handleNextPhone}
+              disabled={phone.length < 6 || loading}
+              loading={loading}
+            />
           </View>
         </Pressable>
       )}
@@ -174,14 +229,14 @@ export default function BookingScreen() {
           {renderHeader(t('booking.otp_title'))}
           <View style={styles.contentPad}>
             <Text variant="body" color={colors.textSecondary} style={styles.instructions}>
-              We've sent a 4-digit code to {phone}. Enter it below.
+              We've bypassed the OTP send step. Just type any 4 numbers below to confirm!
             </Text>
             <View style={styles.otpContainer}>
               <TextInput
                 value={otp}
                 onChangeText={setOtp}
                 keyboardType="number-pad"
-                maxLength={4}
+                maxLength={6}
                 style={[styles.otpInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
                 autoFocus
               />
@@ -192,7 +247,7 @@ export default function BookingScreen() {
               title={t('booking.verify')}
               fullWidth
               onPress={handleVerifyOtp}
-              disabled={otp.length !== 4}
+              disabled={otp.length < 4 || loading}
               loading={loading}
             />
           </View>

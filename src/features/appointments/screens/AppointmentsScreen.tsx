@@ -1,20 +1,47 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, Image } from 'react-native';
+import { View, StyleSheet, FlatList, Image, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/common/components/ui/Text';
 import { Card } from '@/common/components/ui/Card';
 import { Badge } from '@/common/components/ui/Badge';
 import { useThemeColors } from '@/common/hooks/useThemeColors';
-import { useAppointmentsStore } from '../store/useAppointmentsStore';
+import { useAuthStore } from '@/providers/stores/useAuthStore';
+import { useAppointments } from '../hooks/useAppointments';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AppointmentsScreen() {
   const { t } = useTranslation();
   const colors = useThemeColors();
-  const appointments = useAppointmentsStore((state) => state.appointments);
+  
+  const { session } = useAuthStore();
+  const { data: appointments, isLoading, error } = useAppointments(session?.user?.id);
 
-  if (appointments.length === 0) {
+  if (!session) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.emptyContainer}>
+          <Ionicons name="lock-closed-outline" size={64} color={colors.textSecondary} />
+          <Text variant="h3" weight="medium" style={styles.emptyText}>
+            Please log in
+          </Text>
+          <Text variant="body" color={colors.textSecondary} align="center">
+            You must be logged in to view your appointments.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
+         <ActivityIndicator size="large" color={colors.primary} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!appointments || appointments.length === 0) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.emptyContainer}>
