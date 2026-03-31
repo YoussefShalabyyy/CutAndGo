@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.youssefshalaby.cutandgo"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,10 +20,11 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.youssefshalaby.CutAndGo"
     },
     "web": {
-      "output": "static",
+      "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -39,11 +41,27 @@
           }
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "expo-secure-store",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.752721057135-b06mr1jksrm7a8n22v39nru1e2o5lqjd",
+          "iosClientId": "752721057135-b06mr1jksrm7a8n22v39nru1e2o5lqjd.apps.googleusercontent.com",
+          "androidClientId": "752721057135-ti9q4obcbb6anlj889icg7133k3v8cj7.apps.googleusercontent.com"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "09a6cc84-740b-478d-bdc8-463be97c5b07"
+      }
+    },
+    "owner": "youssefshalaby"
   }
 }

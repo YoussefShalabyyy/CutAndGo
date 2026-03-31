@@ -1,0 +1,279 @@
+﻿{
+  "info": {
+    "name": "Maweedi API",
+    "description": "Postman Collection for Maweedi Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost/maweedi-backend/api" },
+    { "key": "token", "value": "YOUR_JWT_TOKEN_HERE" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/auth/register.php",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register.php"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"first_name\": \"John\", \"last_name\": \"Doe\", \"email\": \"john@example.com\", \"password\": \"secret\"}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/auth/login.php",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login.php"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"john@example.com\", \"password\": \"secret\"}"
+            }
+          }
+        },
+        {
+          "name": "Google",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/auth/google.php",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "google.php"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id_token\": \"google_jwt_here\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Discover (Public)",
+      "item": [
+        {
+          "name": "Nearby Shops (businesses.php)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/businesses.php?lat=30.0444&lng=31.2357",
+              "host": ["{{base_url}}"],
+              "path": ["businesses.php"],
+              "query": [
+                { "key": "lat", "value": "30.0444" },
+                { "key": "lng", "value": "31.2357" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Shop Services (services.php)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/services.php?business_id=YOUR_SHOP_ID",
+              "host": ["{{base_url}}"],
+              "path": ["services.php"],
+              "query": [{ "key": "business_id", "value": "YOUR_SHOP_ID" }]
+            }
+          }
+        },
+        {
+          "name": "Availability (availability.php)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/availability.php?business_id=YOUR_SHOP_ID&date=2026-04-01",
+              "host": ["{{base_url}}"],
+              "path": ["availability.php"],
+              "query": [
+                { "key": "business_id", "value": "YOUR_SHOP_ID" },
+                { "key": "date", "value": "2026-04-01" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Booking (Guarded)",
+      "item": [
+        {
+          "name": "Book Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings.php",
+              "host": ["{{base_url}}"],
+              "path": ["bookings.php"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"business_id\": \"b_id\", \"service_id\": \"s_id\", \"start_time\": \"2026-04-01 10:00:00\"}"
+            }
+          }
+        },
+        {
+          "name": "Cancel Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cancel_appointment.php",
+              "host": ["{{base_url}}"],
+              "path": ["cancel_appointment.php"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"appointment_id\": \"appt_id\"}"
+            }
+          }
+        },
+        {
+          "name": "Reschedule Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/reschedule_appointment.php",
+              "host": ["{{base_url}}"],
+              "path": ["reschedule_appointment.php"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"appointment_id\": \"appt_id\", \"new_start_time\": \"2026-04-01 15:30:00\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Profile (Guarded)",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{base_url}}/profile.php",
+              "host": ["{{base_url}}"],
+              "path": ["profile.php"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Favorite",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/toggle_favorite.php",
+              "host": ["{{base_url}}"],
+              "path": ["toggle_favorite.php"]
+            },
+            "body": { "mode": "raw", "raw": "{\"business_id\": \"b_id\"}" }
+          }
+        },
+        {
+          "name": "Add Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/add_review.php",
+              "host": ["{{base_url}}"],
+              "path": ["add_review.php"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"appointment_id\": \"appt_id\", \"rating\": 5, \"comment\": \"Great haircut!\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications (Guarded)",
+      "item": [
+        {
+          "name": "Update Device Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/update_device_token.php",
+              "host": ["{{base_url}}"],
+              "path": ["update_device_token.php"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fcm_token\": \"firebase_token_here\"}"
+            }
+          }
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{base_url}}/notifications.php",
+              "host": ["{{base_url}}"],
+              "path": ["notifications.php"]
+            }
+          }
+        },
+        {
+          "name": "Mark Read",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mark_notification_read.php",
+              "host": ["{{base_url}}"],
+              "path": ["mark_notification_read.php"]
+            },
+            "body": { "mode": "raw", "raw": "{\"notification_id\": 1}" }
+          }
+        }
+      ]
+    }
+  ]
+}

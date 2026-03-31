@@ -1,7 +1,12 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Session } from '@supabase/supabase-js';
+import { create } from "zustand";
+
+export interface Session {
+  access_token: string;
+  user: {
+    id: string;
+    [key: string]: any;
+  };
+}
 
 interface AuthState {
   hasCompletedOnboarding: boolean;
@@ -11,18 +16,10 @@ interface AuthState {
   setSession: (session: Session | null) => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      hasCompletedOnboarding: false,
-      session: null,
-      completeOnboarding: () => set({ hasCompletedOnboarding: true }),
-      resetOnboarding: () => set({ hasCompletedOnboarding: false, session: null }),
-      setSession: (session) => set({ session }),
-    }),
-    {
-      name: 'cut-and-go-auth',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
-  )
-);
+export const useAuthStore = create<AuthState>((set) => ({
+  hasCompletedOnboarding: false,
+  session: null,
+  completeOnboarding: () => set({ hasCompletedOnboarding: true }),
+  resetOnboarding: () => set({ hasCompletedOnboarding: false, session: null }),
+  setSession: (session: Session | null) => set({ session }),
+}));

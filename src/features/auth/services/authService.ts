@@ -1,38 +1,24 @@
-import { supabase } from '@/lib/supabase';
-
 export const authService = {
   // Send OTP to phone number
   sendOTP: async (phone: string) => {
-    const { data, error } = await supabase.auth.signInWithOtp({
-      phone,
-    });
-    
-    if (error) throw error;
-    return data;
+    return { messageId: "mock-123" };
   },
 
   // Verify the submitted OTP
   verifyOTP: async (phone: string, token: string) => {
-    const { data, error } = await supabase.auth.verifyOtp({
-      phone,
-      token,
-      type: 'sms',
-    });
-
-    if (error) throw error;
-    return data;
+    return {
+      session: { access_token: "mock-token" },
+      user: { id: "mock-user" },
+    };
   },
 
   // Get current session
   getSession: async () => {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    return data.session;
+    return { access_token: "mock-token", user: { id: "mock-user" } };
   },
 
   // Logout
   signOut: async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  }
+    return;
+  },
 };

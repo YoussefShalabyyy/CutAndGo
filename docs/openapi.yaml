@@ -1,0 +1,273 @@
+﻿openapi: 3.0.0
+info:
+  title: Maweedi API
+  version: 1.0.0
+  description: Pure PHP API for Maweedi High-Concurrency Booking Platform
+
+servers:
+  - url: http://localhost/maweedi-backend
+    description: Local Development Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/auth/register.php:
+    post:
+      summary: Register a new user
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name: { type: string }
+                last_name: { type: string }
+                email: { type: string }
+                password: { type: string }
+      responses:
+        "201":
+          description: Registration successful
+
+  /api/auth/login.php:
+    post:
+      summary: Login via email
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        "200":
+          description: Login successful
+
+  /api/auth/google.php:
+    post:
+      summary: Authenticate via Google ID Token
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_token: { type: string }
+      responses:
+        "200":
+          description: OK
+
+  /api/businesses.php:
+    get:
+      summary: Discover Nearby Barbershops
+      tags: [Discover]
+      security: []
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema: { type: number }
+        - name: lng
+          in: query
+          required: true
+          schema: { type: number }
+        - name: radius_km
+          in: query
+          schema: { type: number, default: 5 }
+      responses:
+        "200":
+          description: Returns nearby shops
+
+  /api/services.php:
+    get:
+      summary: Get Services & Staff for a Shop
+      tags: [Discover]
+      security: []
+      parameters:
+        - name: business_id
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Returns categorized services and staff
+
+  /api/availability.php:
+    get:
+      summary: Get Available 30-min Booking Slots
+      tags: [Booking]
+      security: []
+      parameters:
+        - name: business_id
+          in: query
+          required: true
+          schema: { type: string }
+        - name: date
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: staff_id
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Returns array of available time slots
+
+  /api/bookings.php:
+    post:
+      summary: Book an appointment
+      tags: [Booking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                business_id: { type: string }
+                service_id: { type: string }
+                start_time: { type: string, example: "YYYY-MM-DD HH:mm:ss" }
+                staff_id:
+                  {
+                    type: string,
+                    description: "Optional. Leave null for Any Barber",
+                  }
+      responses:
+        "201":
+          description: Booking successful
+        "409":
+          description: Conflict, time slot taken
+
+  /api/cancel_appointment.php:
+    post:
+      summary: Cancel an appointment
+      tags: [Booking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                appointment_id: { type: string }
+      responses:
+        "200":
+          description: Cancelled
+
+  /api/reschedule_appointment.php:
+    post:
+      summary: Reschedule an appointment
+      tags: [Booking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                appointment_id: { type: string }
+                new_start_time: { type: string, example: "YYYY-MM-DD HH:mm:ss" }
+      responses:
+        "200":
+          description: Rescheduled
+        "409":
+          description: Conflict
+
+  /api/profile.php:
+    get:
+      summary: Get User Profile (History, Upcoming, Favorites)
+      tags: [User]
+      responses:
+        "200":
+          description: Profile data
+
+  /api/toggle_favorite.php:
+    post:
+      summary: Add or remove shop from favorites
+      tags: [User]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                business_id: { type: string }
+      responses:
+        "200":
+          description: Toggled successfully
+
+  /api/add_review.php:
+    post:
+      summary: Submit a review for a completed appointment
+      tags: [User]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                appointment_id: { type: string }
+                rating: { type: integer, minimum: 1, maximum: 5 }
+                comment: { type: string }
+      responses:
+        "201":
+          description: Review added
+
+  /api/update_device_token.php:
+    post:
+      summary: Update Push Notification Token
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fcm_token: { type: string }
+      responses:
+        "200":
+          description: Token updated
+
+  /api/notifications.php:
+    get:
+      summary: Get user notifications
+      tags: [Notifications]
+      responses:
+        "200":
+          description: List of notifications
+
+  /api/mark_notification_read.php:
+    post:
+      summary: Mark notification as read
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notification_id: { type: integer }
+      responses:
+        "200":
+          description: Marked as read
