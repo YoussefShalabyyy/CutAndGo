@@ -21,7 +21,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.youssefshalaby.CutAndGo"
+      "package": "com.youssefshalaby.CutAndGo",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "server",

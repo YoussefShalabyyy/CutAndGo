@@ -1,12 +1,13 @@
-import { Stack } from 'expo-router';
-import { useSettingsStore } from '@/providers/stores/useSettingsStore';
-import { QueryProvider } from '@/providers/QueryProvider';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
 import i18next from '@/lib/i18n';
+import { NotificationProvider } from '@/providers/NotificationContext';
+import { QueryProvider } from '@/providers/QueryProvider';
+import { useSettingsStore } from '@/providers/stores/useSettingsStore';
 import {
   GoogleSignin,
 } from '@react-native-google-signin/google-signin';
+import { Stack } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 
 
 export default function RootLayout() {
@@ -44,14 +45,16 @@ export default function RootLayout() {
 
   return (
     <QueryProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(onboarding)" />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="barber/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="booking/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: false }} />
-      </Stack>
+      <NotificationProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(onboarding)" />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="barber/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="booking/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: false }} />
+        </Stack>
+      </NotificationProvider>
     </QueryProvider>
   );
 }
